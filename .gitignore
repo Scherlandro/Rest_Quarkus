@@ -1,8 +1,42 @@
 .idea/
+*.ipr
+*.iml
+*.iws
+
 .vscode/
+.factorypath
+
 wallet-api/EX p simular erro.jpg
 wallet-api/src/test/
 wallet/.angular/
 wallet/node_modules/
 walletapi-api/target/
 cube3d.css
+
+#Maven
+wallet-api/target/
+wallet-api/pom.xml.tag
+wallet-api/pom.xml.releaseBackup
+wallet-api/pom.xml.versionsBackup
+wallet-api/release.properties
+wallet-api/.flattened-pom.xml
+
+
+# OSX
+.DS_Store
+
+# Vim
+*.swp
+*.swo
+
+# patch
+*.orig
+*.rej
+
+# Local environment
+.env
+
+# Plugin directory
+/.quarkus/cli/plugins/
+# TLS Certificates
+.certs/
