@@ -24,12 +24,6 @@ public class VendasServiceImpl implements VendasService {
         return vendasRepository.findAllVendas();
     }
 
-
-    @Override
-    public Vendas litarVendaPorCod(Integer id) {
-        return vendasRepository.findById(id);
-    }
-
     @Override
     public List<Vendas> litarVendaPorCliente(String nome_cliente) {
         return vendasRepository.findVendasByNomeDoCliente(nome_cliente);

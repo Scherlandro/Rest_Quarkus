@@ -9,7 +9,6 @@ public interface VendasService {
 
     List<Vendas> listarVendas();
     Vendas save(Vendas vendas) ;
-    Vendas litarVendaPorCod(Integer id) ;
     List<Vendas> litarVendaPorCliente(String name) ;
     Optional<Vendas> findByIdOptional(Integer id) ;
     void delete(Integer id);
