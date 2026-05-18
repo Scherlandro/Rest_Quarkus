@@ -1,0 +1,1 @@
+https://code.quarkus.io/?g=com.walletquarkus&a=wallet-with-quarkus&j=11&e=resteasy&e=rest-client-reactive&e=rest-client-reactive-jackson&e=hibernate-validator&S=io.quarkus.platform%3A3.2&extension-search=category:web
