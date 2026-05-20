@@ -1,10 +1,5 @@
 package com.walletapi.resource;
 
-
-import static org.springframework.http.HttpHeaders.*;
-import static org.springframework.http.HttpStatus.*;
-import static org.springframework.http.MediaType.*;
-
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
@@ -13,19 +8,27 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-//import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+// Substitutos Jakarta REST para o Spring Web
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Context;
+
+// Injeção de dependência padrão do CDI (Quarkus)
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -36,130 +39,110 @@ import com.walletapi.entity.Role;
 import com.walletapi.entity.User;
 import com.walletapi.service.UserService;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+// No Quarkus RESTEasy Reactive, usamos o Vert.x HttpServerRequest para manipular requests puros se necessário,
+// mas para o token-refresh mantivemos a compatibilidade padrão do Jakarta.
+import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.HttpServerResponse;
 
-@RestController
-//@CrossOrigin(origins = "*")
-@RequestMapping("/api/user")
+
+@Path("/api/user") // Equivalente ao @RequestMapping
+@ApplicationScoped // Escopo do CDI equivalente ao componente gerenciado do Spring
+@Consumes(MediaType.APPLICATION_JSON) // Define que todos os endpoints aceitam JSON
+@Produces(MediaType.APPLICATION_JSON) // Define que todos os endpoints retornam JSON
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
-    @Autowired
-    private ModelMapper mapper;   
 
-    @GetMapping(path = "/all")
-    public ResponseEntity<List<User>> listarUsuarios(){
-                return ResponseEntity.ok().body(userService.listUsers());
-    }
-/*     @GET
-    public Response listarUsuarios(@QueryParam("page") @DefaultValue("0")Integer page,
-        @QueryParam("pageSize") @DefaultValue("10")Integer pageSize){
-            var users = userService.listUsers(page, pageSize);
-        return Response.ok().body(userService.listUsers());
-    }
- */
+    @Inject // Substitui o @Autowired do Spring
+    ModelMapper mapper;
 
-/*     @GET
+    @GET
+    @Path("/all")
+    public Response listarUsuarios() {
+        return Response.ok(userService.listUsers()).build();
+    }
+
+    @GET
     @Path("/getUser/{username}")
-    @PreAuthorize("hasAnyRole('admin')")
-    public User consultar(@PathVariable("username") String username){
-        return userService.getUser(username);
-    } */
-    
-     @GetMapping(path = "/getUser/{username}")
-    public User consultar(@PathVariable("username") String username){
-        return userService.getUser(username);
+    public Response consultar(@PathParam("username") String username) {
+        User user = userService.getUser(username);
+        if (user == null) {
+            return Response.status(Status.NOT_FOUND).build();
+        }
+        return Response.ok(user).build();
     }
 
-
-    @PostMapping(path = "/save-user/")
-    public ResponseEntity salvar(@RequestBody UserDto userDto){
+    @POST
+    @Path("/save-user")
+    public Response salvar(UserDto userDto) {
         userService.saveUser(mapper.map(userDto, User.class));
         Optional<User> profissionais = userService.findById(userDto.getId_user());
-        return ResponseEntity.ok(profissionais.map(e->mapper.map(e,
-                User.class)).map(record -> ResponseEntity.ok().body(record))
-                .orElse(ResponseEntity.notFound().build()));
+
+        return profissionais
+                .map(e -> mapper.map(e, User.class))
+                .map(record -> Response.ok(record).build())
+                .orElse(Response.status(Status.NOT_FOUND).build());
     }
 
-    @PutMapping(path = "/edit-user")
-    public User editar(@RequestBody User user){
+    @PUT
+    @Path("/edit-user")
+    public User editar(User user) {
         return userService.saveUser(user);
     }
 
-    @DeleteMapping(path = "/delete-user/{id}")
-    public void excluir(@PathVariable("id") Long id){
+    @DELETE
+    @Path("/delete-user/{id}")
+    public Response excluir(@PathParam("id") Long id) {
         userService.removeUser(id);
+        return Response.noContent().build(); // Melhor prática retornar 24 No Content para Delete
     }
 
-   /*  @PostMapping(path = "/save-role")
-    public ResponseEntity<Role> criarCargo(@RequestBody Role role){
-        URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/user/save-role").toUriString());
-        return ResponseEntity.created(uri).body(userService.saveRole(role));
-    } */
-
-    @PostMapping(path = "/role-addtouser")
-    public ResponseEntity<?> adicionarCargo(@RequestBody RoleToUserForm form){
+   /* @POST
+    @Path("/role-addtouser")
+    public Response adicionarCargo(RoleToUserForm form) {
         userService.addRoleToUser(form.getUsername(), form.getRoleName());
-        return ResponseEntity.ok().build();
+        return Response.ok().build();
     }
-/*
-  Não atualiza mesmo com PutMapping
-    @PutMapping(path = "/edit-roletouser/{username},{rolename}")
-    public ResponseEntity<User> editarCargo(@PathVariable("username") final String username,
-                                            @PathVariable("rolename") final String rolename){
-        log.info("Editando role {} para usuario {}", rolename, username);
-        userService.addRoleToUser(username, rolename);
-        return ResponseEntity.ok().build();
-    }*/
-
-    @GetMapping(path = "/token-refresh")
-    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String authorizationHeader = request.getHeader(AUTHORIZATION);
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")){
+*/
+    @GET
+    @Path("/token-refresh")
+    public void refreshToken(@Context HttpServerRequest request, @Context HttpServerResponse response) throws IOException {
+        String authorizationHeader = request.getHeader("Authorization");
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             try {
-                String refresh_token = authorizationHeader.substring("Bearer".length());
+                String refresh_token = authorizationHeader.substring("Bearer ".length());
                 Algorithm algorithm = Algorithm.HMAC256("secret".getBytes());
                 JWTVerifier verifier = JWT.require(algorithm).build();
                 DecodedJWT decodedJWT = verifier.verify(refresh_token);
                 String username = decodedJWT.getSubject();
                 User user = userService.getUser(username);
+
                 String access_token = JWT.create()
                         .withSubject(user.getUsername())
-                        .withExpiresAt(new Date(System.currentTimeMillis()+ 30 * 60 * 1000))
-                        .withIssuer(request.getRequestURI().toString())
+                        .withExpiresAt(new Date(System.currentTimeMillis() + 30 * 60 * 1000))
+                        .withIssuer(request.absoluteURI())
                         .withClaim("roles", user.getRoles().stream().map(Role::getName).collect(Collectors.toList()))
                         .sign(algorithm);
-                Map<String,String> tokens = new HashMap<>();
+
+                Map<String, String> tokens = new HashMap<>();
                 tokens.put("access_token", access_token);
                 tokens.put("refresh_token", refresh_token);
-                response.setContentType(APPLICATION_JSON_VALUE);
-                new ObjectMapper().writeValue(response.getOutputStream(), tokens);
-             }catch (Exception exception){
-                response.setHeader("error in UserController ",exception.getMessage());
-                response.setStatus(FORBIDDEN.value());
-                //response.sendError(FORBIDDEN.value());
-                Map<String,String> error = new HashMap<>();
+
+                response.putHeader("Content-Type", "application/json");
+                response.end(new ObjectMapper().writeValueAsString(tokens));
+            } catch (Exception exception) {
+                response.putHeader("error in UserController ", exception.getMessage());
+                response.setStatusCode(403);
+
+                Map<String, String> error = new HashMap<>();
                 error.put("error_message", exception.getMessage());
-                response.setContentType(APPLICATION_JSON_VALUE);
-                new ObjectMapper().writeValue(response.getOutputStream(), error);
+                response.putHeader("Content-Type", "application/json");
+                response.end(new ObjectMapper().writeValueAsString(error));
             }
-        }else {
+        } else {
             throw new RuntimeException("Refresh token is missing");
         }
     }
 }
 
-@Data
-@AllArgsConstructor
-@RequiredArgsConstructor
-class RoleToUserForm{
-    private String username;
-    private String roleName;
-
-    
-}
