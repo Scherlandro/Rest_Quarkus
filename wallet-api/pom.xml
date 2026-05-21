@@ -7,7 +7,6 @@
 
     <properties>
         <compiler-plugin.version>3.13.0</compiler-plugin.version>
-        <!-- Quarkus 3.x recomenda Java 17 ou superior -->
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
