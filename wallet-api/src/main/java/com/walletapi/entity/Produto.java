@@ -3,7 +3,7 @@ package com.walletapi.entity;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
 import java.io.Serializable;
-import java.time.LocalDate; // Recomendado usar tipos de data nativos
+import java.time.LocalDate;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Entity
@@ -72,6 +72,5 @@ public class Produto extends PanacheEntityBase implements Serializable {
     public byte[] fotoProduto;
 
 
-    // O PanacheEntityBase não exige Getters e Setters explícitos se os campos forem public.
-    // O Quarkus os gera em tempo de compilação para manter o encapsulamento.
+
 }
