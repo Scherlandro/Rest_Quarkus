@@ -27,8 +27,7 @@ public class User {
     @Column(nullable = false, length = 150)
     private String password;
 
-    @Lob
-    @Column( name = "foto_usuario", columnDefinition = "LONGBLOB")
+    @Column(name = "foto_usuario", columnDefinition = "VARBINARY(MAX)")
     private byte[] fotoUsuario;
 
     @ManyToMany(fetch = FetchType.EAGER)

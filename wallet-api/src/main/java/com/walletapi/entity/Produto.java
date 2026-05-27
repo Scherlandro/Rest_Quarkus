@@ -67,10 +67,9 @@ public class Produto extends PanacheEntityBase implements Serializable {
     @Column(name = "id_modelo")
     public Integer idModelo;
 
-    @Lob
-    @Column(name = "foto_produto", columnDefinition = "LONGBLOB")
-    public byte[] fotoProduto;
 
+    @Column(name = "foto_produto", columnDefinition = "VARBINARY(MAX)")
+    public byte[] fotoProduto; // ou o tipo que você estiver usando (Blob, etc)
 
 
 }
