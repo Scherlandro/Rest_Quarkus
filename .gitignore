@@ -5,6 +5,7 @@
 
 .vscode/
 .factorypath
+config do propeties.properties
 
 wallet-api/EX p simular erro.jpg
 wallet-api/src/test/
